@@ -53,7 +53,7 @@ import jsat.utils.SystemInfo;
 
 /**
  * GUI for visualizing classification 2D problems
- * 
+ *
  * @author Edward Raff
  */
 @SuppressWarnings("serial")
@@ -65,13 +65,13 @@ public class ClassifierToyWorld extends javax.swing.JFrame
     private static ClassificationDataSet dataSet;
     final JFileChooser fileChooser = new JFileChooser();
     /**
-     * The main holder of all the visualizations. Empty until a dataset is 
-     * loaded. The first index will be a visualization of the dataset, all 
-     * subsequent indices are classifiers we have trained 
+     * The main holder of all the visualizations. Empty until a dataset is
+     * loaded. The first index will be a visualization of the dataset, all
+     * subsequent indices are classifiers we have trained
      */
     private static JTabbedPane centerTabbed;
     /**
-     * Atomic integer keeps track of the number of classifiers we are currently 
+     * Atomic integer keeps track of the number of classifiers we are currently
      * waiting to finish training
      */
     private static final AtomicInteger waitingFor = new AtomicInteger(0);
@@ -84,13 +84,13 @@ public class ClassifierToyWorld extends javax.swing.JFrame
      */
     private static Thread backgroundThread;
     /**
-     * List of all plots so that when settings are changed we can apply them to 
+     * List of all plots so that when settings are changed we can apply them to
      * all the current plots
      */
     private static final List<ClassificationPlot> plotList = new ArrayList<>();
     private static final ExecutorService execService = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
     /**
-     * Current resolutions for visualizing classification space. 
+     * Current resolutions for visualizing classification space.
      */
     private static int plotResolution = 5;
     /**
@@ -98,11 +98,11 @@ public class ClassifierToyWorld extends javax.swing.JFrame
      */
     private static TransformsMenu transformsMenu;
     /**
-     * Indicates whether we want to give classes equal weight when training the 
+     * Indicates whether we want to give classes equal weight when training the
      * model or not
      */
     private static volatile boolean equalWeight = false;
-    
+
     /**
      * The list of all classifiers we know of
      */
@@ -122,9 +122,9 @@ public class ClassifierToyWorld extends javax.swing.JFrame
         put("SVM-Linear", new DCDs());
         put("SVM-RBF", new PlatSMO(new RBFKernel(0.075)));
         put("Back Propagation Net", new BackPropagationNet(new int[]{10}));
-        
+
     }};
-    
+
     /**
      * Creates new form ClassifierToyWorld
      */
@@ -132,7 +132,7 @@ public class ClassifierToyWorld extends javax.swing.JFrame
     {
         initComponents();
         jMenuBar1.add(transformsMenu = new TransformsMenu(this, "Transforms"));
-        
+
         jLabelInfo.setText(" ");
         backgroundJobQueue = new LinkedBlockingQueue<>();
         //add a menu item fro every classifier we have
@@ -140,14 +140,14 @@ public class ClassifierToyWorld extends javax.swing.JFrame
         {
             final String name = entry.getKey();
             final Classifier classifier = entry.getValue();
-            
+
             JMenuItem menuItem = new JMenuItem(name);
             menuItem.addActionListener((ActionEvent ae) ->
             {
                 jLabelInfo.setText("Waiting on " + waitingFor.incrementAndGet() + " jobs...");
                 try
                 {
-                    //First, configure out objects and ask the User to change settings. 
+                    //First, configure out objects and ask the User to change settings.
                     showParameterizedDialog(getOwner(), classifier);
                     Classifier workingClassifier = classifier.clone();
                     if (!jRadioBMetaNone.isSelected())
@@ -184,14 +184,14 @@ public class ClassifierToyWorld extends javax.swing.JFrame
                     else
                         prefix = "";
                     workingClassifier = new DataModelPipeline(workingClassifier, transformsMenu.getDataTransformProcess().clone());
-                    
+
                     //make the reference final so we can just call it below in the lambda
                     final Classifier finalClassifier = workingClassifier;
-                        
+
                     //and now queue it to run in the background
                     backgroundJobQueue.put((Runnable) () ->
                     {
-                        
+
                         if (equalWeight)
                         {
                             double[] priors = dataSet.getPriors();
@@ -201,7 +201,7 @@ public class ClassifierToyWorld extends javax.swing.JFrame
                         else
                             for (int i2 = 0; i2 < dataSet.getSampleSize(); i2++)
                                 dataSet.getDataPoint(i2).setWeight(1.0);
-                        
+
                         try
                         {
                             if(jCheckBoxMenuItemParallel.isSelected())
@@ -215,10 +215,10 @@ public class ClassifierToyWorld extends javax.swing.JFrame
                             {
                                 JOptionPane.showMessageDialog(rootPane, "Error: " + ex.getMessage(), "Error ", JOptionPane.ERROR_MESSAGE);
                             });
-                            
+
                             return;
                         }
-                        
+
                         ClassificationPlot cp = new ClassificationPlot(dataSet, finalClassifier);
                         cp.scaleCords(1.1);
                         cp.setResolution(plotResolution);
@@ -232,11 +232,11 @@ public class ClassifierToyWorld extends javax.swing.JFrame
                     Logger.getLogger(ClusterToyWorld.class.getName()).log(Level.SEVERE, null, ex);
                 }
             });
-            
+
             jMenuClassifiers.add(menuItem);
         }
-        
-        
+
+
         //loop forever, eating jobs and updating the counter
         backgroundThread = new Thread(() -> 
         {
@@ -263,7 +263,7 @@ public class ClassifierToyWorld extends javax.swing.JFrame
         });
         backgroundThread.setDaemon(true);
         backgroundThread.start();
-        
+
         setSize(600, 400);
     }
 
@@ -443,14 +443,14 @@ public class ClassifierToyWorld extends javax.swing.JFrame
     private void jMenuItemOpenActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_jMenuItemOpenActionPerformed
     {//GEN-HEADEREND:event_jMenuItemOpenActionPerformed
         int returnVal = fileChooser.showOpenDialog(this);
-        if (returnVal == JFileChooser.APPROVE_OPTION) 
+        if (returnVal == JFileChooser.APPROVE_OPTION)
         {
             File file = fileChooser.getSelectedFile();
             String extension = file.toString().substring(file.toString().lastIndexOf(".")+1);
 
             //the data set we are loading
             ClassificationDataSet tmpDataSet;
-            
+
             if(extension.equalsIgnoreCase("arff"))
             {
                 DataSet loaded = ARFFLoader.loadArffFile(file);
@@ -458,8 +458,8 @@ public class ClassifierToyWorld extends javax.swing.JFrame
                 {
                     SwingUtilities.invokeLater(() ->
                     {
-                        JOptionPane.showMessageDialog(this, 
-                                "The loaded dataset dosn't have any categorical features to be the classification target ", 
+                        JOptionPane.showMessageDialog(this,
+                                "The loaded dataset dosn't have any categorical features to be the classification target ",
                                 "Loading ARFF File Error", JOptionPane.ERROR_MESSAGE);
                     });
                     return;
@@ -469,17 +469,17 @@ public class ClassifierToyWorld extends javax.swing.JFrame
                     //TODO instead lets display a dialog and have the user pick which one they want
                     SwingUtilities.invokeLater(() ->
                     {
-                        JOptionPane.showMessageDialog(this, 
-                                "The loaded dataset dosn't has more than one categorical features, using " + loaded.getCategoryName(loaded.getNumCategoricalVars()-1), 
+                        JOptionPane.showMessageDialog(this,
+                                "The loaded dataset dosn't has more than one categorical features, using " + loaded.getCategoryName(loaded.getNumCategoricalVars()-1),
                                 "Loading ARFF, multiple options", JOptionPane.ERROR_MESSAGE);
                     });
                 }
-                
+
                 tmpDataSet = new ClassificationDataSet(loaded, loaded.getNumCategoricalVars()-1);
             }
             else if(extension.equalsIgnoreCase("txt"))
             {
-                /** 
+                /**
                  * Maps each unique string to its class ID
                  */
                 Map<String, Integer> options = new HashMap<>();
@@ -504,7 +504,7 @@ public class ClassifierToyWorld extends javax.swing.JFrame
                             options.put(split[2], options.size());
                         pointClass.add(options.get(split[2]));
                     }
-                    
+
                     //Now create the dpList
                     CategoricalData[] catData = new CategoricalData[] { new CategoricalData(options.size()) } ;
                     //convert everything to a data set
@@ -514,18 +514,18 @@ public class ClassifierToyWorld extends javax.swing.JFrame
                         DataPoint dp = new DataPoint(pointVecs.get(i), new int[]{pointClass.get(i)}, catData);
                         dpList.add(dp);
                     }
-                    
+
                     //empty? Means none of the lines looked like data points
                     if(dpList.isEmpty())
                     {
                         SwingUtilities.invokeLater(() ->
                         {
                             JOptionPane.showMessageDialog(this, 
-                                    "The text file dosn't appear to be formated as \"#, #, className\", no lines were found matching this pattern", 
+                                    "The text file dosn't appear to be formated as \"#, #, className\", no lines were found matching this pattern",
                                     "Loading Text File Failure", JOptionPane.ERROR_MESSAGE);
                         });
                     }
-                    
+
                     tmpDataSet = new ClassificationDataSet(new SimpleDataSet(dpList), 0);
                 }
                 catch(IOException | NumberFormatException ex)
@@ -559,11 +559,11 @@ public class ClassifierToyWorld extends javax.swing.JFrame
                             "Dataset Issue", JOptionPane.ERROR_MESSAGE);
                 });
             }
-            
+
             System.out.println("Loaded, N: " + tmpDataSet.getSampleSize());
             dataSet = tmpDataSet;
             dataSet.applyTransform(new LinearTransform(dataSet));
-            
+
             CategoryPlot catPlot = new CategoryPlot(dataSet);
             catPlot.scaleCords(1.1);
             if(centerTabbed != null)
@@ -593,7 +593,7 @@ public class ClassifierToyWorld extends javax.swing.JFrame
 
         plotResolution = newRes;
         plotList.stream().forEach((plot) -> plot.setResolution(plotResolution));
-        
+
         validate();
         repaint();
     }//GEN-LAST:event_jMenuItemPlotResolitionActionPerformed
@@ -615,7 +615,7 @@ public class ClassifierToyWorld extends javax.swing.JFrame
      */
     public static void main(String args[])
     {
-        //For OSX, dosn't impact anyone else - so who cares. 
+        //For OSX, dosn't impact anyone else - so who cares.
         System.setProperty("apple.laf.useScreenMenuBar", "true");
 
         /*

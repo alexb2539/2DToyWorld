@@ -37,10 +37,10 @@ public interface Func1D extends Function
     {
         return f(arg0[0]);
     }
-    
+
     /**
      * Function of one variable
-     * @param x the input 
+     * @param x the input
      * @return the output
      */
     public double f(double x);

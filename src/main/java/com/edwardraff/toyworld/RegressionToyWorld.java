@@ -63,9 +63,9 @@ import jsat.utils.SystemInfo;
 public class RegressionToyWorld extends javax.swing.JFrame
 {
     /**
-     * The main holder of all the visualizations. Empty until a dataset is 
-     * loaded. The first index will be a visualization of the dataset, all 
-     * subsequent indices are regressors we have trained 
+     * The main holder of all the visualizations. Empty until a dataset is
+     * loaded. The first index will be a visualization of the dataset, all
+     * subsequent indices are regressors we have trained
      */
     private JTabbedPane jTabbedPane;
     /**
@@ -73,13 +73,13 @@ public class RegressionToyWorld extends javax.swing.JFrame
      */
     private static RegressionDataSet rData;
     /**
-     * The number of data points to generate evenly along the range for every 
+     * The number of data points to generate evenly along the range for every
      * pass through the data
      */
     private int genSize = 700;
     /**
      * The multiple applied to {@link #genSize} for how many complete noise data
-     * points to generate (and are only generated when the random noise 
+     * points to generate (and are only generated when the random noise
      * selection is set)
      */
     private double randNoieFrac = 0.2;
@@ -95,14 +95,14 @@ public class RegressionToyWorld extends javax.swing.JFrame
      * The ending value on the x axis to generate data from
      */
     private static double genEnd = 4;
-    
+
     /**
      * Menu to hold all the transformation options
      */
     private static TransformsMenu transformsMenu;
-    
+
     /**
-     * Exploiting the parameterized code in JSAT to make a lazy GUI to configure 
+     * Exploiting the parameterized code in JSAT to make a lazy GUI to configure
      * options when generating test datasets
      */
     final List<Parameter> appParams = new ArrayList<Parameter>()
@@ -130,7 +130,7 @@ public class RegressionToyWorld extends javax.swing.JFrame
                 return "Sample Size";
             }
         });
-        
+
         add(new DoubleParameter() {
 
             @Override
@@ -152,7 +152,7 @@ public class RegressionToyWorld extends javax.swing.JFrame
                 return "Gen Start";
             }
         });
-        
+
         add(new DoubleParameter() {
 
             @Override
@@ -174,7 +174,7 @@ public class RegressionToyWorld extends javax.swing.JFrame
                 return "Gen End";
             }
         });
-        
+
         add(new DoubleParameter() {
 
             @Override
@@ -199,9 +199,9 @@ public class RegressionToyWorld extends javax.swing.JFrame
             }
         });
     }};
-    
+
     /**
-     * Atomic integer keeps track of the number of regressors we are currently 
+     * Atomic integer keeps track of the number of regressors we are currently
      * waiting to finish training
      */
     private static final AtomicInteger waitingFor = new AtomicInteger(0);
@@ -213,16 +213,16 @@ public class RegressionToyWorld extends javax.swing.JFrame
      * The thread we use to eat classification jobs forever
      */
     private static Thread backgroundThread;
-    
+
     private static final ExecutorService execService = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
-    
+
     /**
      * Map of all the regressors we will be using
      */
     private static final Map<String, Regressor> regressors = new LinkedHashMap<String, Regressor>()
     {{
         put("k-NearestNeighbour", new NearestNeighbour(1));
-        put("Locally Weighted Linear Regression", new LWL(new MultipleLinearRegression(true), 15, new EuclideanDistance(), 
+        put("Locally Weighted Linear Regression", new LWL(new MultipleLinearRegression(true), 15, new EuclideanDistance(),
             EpanechnikovKF.getInstance(), new DefaultVectorCollectionFactory()));
         put("NadarayaWatson", new NadarayaWatson(new MetricKDE()));
         put("Linear Regression", new MultipleLinearRegression());
@@ -234,16 +234,16 @@ public class RegressionToyWorld extends javax.swing.JFrame
         put("SGB-Stumps", new StochasticGradientBoosting(new DecisionStump(), 200));
         put("SGB-Trees", new StochasticGradientBoosting(new DecisionTree(3, 10, TreePruner.PruningMethod.NONE, 0.1), 200));
         put("KernelRLS", new KernelRLS(new RBFKernel(0.075), 0.001));
-        
+
     }};
-    
+
     /**
      * This object holds the 1D function that represents the grown truth of what
      * we are trying to approximate. If {@code null} no errors will be shown. If
      * non-null all plots will draw the true function we are trying to learn
      */
     static private Function truth = null;
-    
+
     /**
      * All the functions we can generate data for
      */
@@ -256,7 +256,7 @@ public class RegressionToyWorld extends javax.swing.JFrame
         put("exp(sin(x))+x/3", (x) -> exp(sin(x))+x/3);
         put("exp(sin(x))+cos(x)*sign(sin(x*min(x+1,3)^2))", (x) -> exp(sin(x))+cos(x)*Math.signum(sin(x*pow(min(x+1,3),2))));
     }};
-    
+
 
     /**
      * Creates new form RegressionToyWorld
@@ -267,7 +267,7 @@ public class RegressionToyWorld extends javax.swing.JFrame
         jMenuBar1.add(transformsMenu = new TransformsMenu(this, "Transforms"));
         jLabelInfo.setText(" ");
         backgroundJobQueue = new LinkedBlockingQueue<>();
-        
+
         for(Entry<String, Regressor> entry : regressors.entrySet())
         {
             final String name = entry.getKey();
@@ -278,28 +278,28 @@ public class RegressionToyWorld extends javax.swing.JFrame
                 try
                 {
                     Regressor regressor = regressorToClone.clone();
-                    
+
                     ClassifierToyWorld.showParameterizedDialog(this, regressor);
-                    
+
                     if(jRadioButtonMetaRANSAC.isSelected())
                     {
                         RANSAC ransac = new RANSAC(regressor, 100, 20, 50, 10);
                         ParameterPanel.showParameterDiag(getOwner(), "Set RANSAC Parameters", ransac);
-                        
+
                         regressor = ransac;
                     }
                     else if(jRadioButtonMetaBagging.isSelected())
                     {
                         Bagging bagging = new Bagging(regressor);
                         ParameterPanel.showParameterDiag(getOwner(), "Set Bagging Parameters", bagging);
-                        
+
                         regressor = bagging;
                     }
-                    
+
                     ///Create tranformed version
                     regressor = new DataModelPipeline(regressor, transformsMenu.getDataTransformProcess().clone());
                     final Regressor regressorToUse = regressor.clone();
-                    
+
                     jLabelInfo.setText("Waiting for " + waitingFor.incrementAndGet() + " jobs to finish");
                     backgroundJobQueue.put((Runnable) () ->
                     {
@@ -313,18 +313,18 @@ public class RegressionToyWorld extends javax.swing.JFrame
                 {
                     Logger.getLogger(RegressionToyWorld.class.getName()).log(Level.SEVERE, null, ex);
                 }
-                
+
             });
             jMenuRegression.add(jitem);
         }
-        
-        
+
+
         ///Generators
-        
+
         for(final Entry<String, Func1D> entry : generatableFunctions.entrySet())
         {
             JMenuItem jitem = new JMenuItem(entry.getKey());
-            
+
             jitem.addActionListener((ActionEvent e) ->
             {
                 truth = entry.getValue();
@@ -340,16 +340,16 @@ public class RegressionToyWorld extends javax.swing.JFrame
                     //Only option is unfirom ATM
                     Distribution xDist = new Uniform(genStart, genEnd);
                     Distribution yDist = new Uniform(rData.getTargetValues().min(), rData.getTargetValues().max());
-                    
+
                     for(int i = 0; i < genSize*randNoieFrac; i++)
                         addPoint(xDist.invCdf(rand.nextDouble()), yDist.invCdf(rand.nextDouble()));
-                    
+
                 }
                 setUpMain();
             });
             jMenuGenerateData.add(jitem);
         }
-        
+
         //loop forever, eating jobs and updating the counter
         backgroundThread = new Thread(() -> 
         {
@@ -375,7 +375,7 @@ public class RegressionToyWorld extends javax.swing.JFrame
         });
         backgroundThread.setDaemon(true);
         backgroundThread.start();
-        
+
         setSize(600, 400);
     }
 
@@ -388,7 +388,7 @@ public class RegressionToyWorld extends javax.swing.JFrame
     {
         rData.addDataPoint(new DataPoint(DenseVector.toDenseVec(x), new int[0], new CategoricalData[0]), y);
     }
-    
+
     private Distribution getOutputNoise()
     {
         if(jRBOutUniformNoise.isSelected())
@@ -397,7 +397,7 @@ public class RegressionToyWorld extends javax.swing.JFrame
             return new Normal(0, 0.2);
         return new Uniform(0, Math.nextUp(0));
     }
-    
+
     private Distribution getInputNoise()
     {
         if(jRBInUniformNoise.isSelected())
@@ -406,8 +406,8 @@ public class RegressionToyWorld extends javax.swing.JFrame
             return new Normal(0, 0.2);
         return new Uniform(0, Math.nextUp(0));
     }
-    
-    
+
+
     private void setUpMain()
     {
         if (jTabbedPane != null)
@@ -582,7 +582,7 @@ public class RegressionToyWorld extends javax.swing.JFrame
      */
     public static void main(String args[])
     {
-        //For OSX, dosn't impact anyone else - so who cares. 
+        //For OSX, dosn't impact anyone else - so who cares.
         System.setProperty("apple.laf.useScreenMenuBar", "true");
 
         /*

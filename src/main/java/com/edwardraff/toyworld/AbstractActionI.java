@@ -26,8 +26,8 @@ import javax.swing.AbstractAction;
 public interface AbstractActionI
 {
     public void actionPerformedI(ActionEvent e);
-    
-    
+
+
     default public AbstractAction getAsAction()
     {
         return new AbstractAction()

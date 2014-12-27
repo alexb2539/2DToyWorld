@@ -42,7 +42,7 @@ import jsat.text.GreekLetters;
 
 /**
  * Convenience class for adding all the transforms we wish to use
- * 
+ *
  * @author edwardraff
  */
 public class TransformsMenu extends JMenu
@@ -53,7 +53,7 @@ public class TransformsMenu extends JMenu
      */
     private DataTransformProcess dataTransformProcess;
     /**
-     * Menu used to provide a list of the currently queued transforms 
+     * Menu used to provide a list of the currently queued transforms
      */
     private JMenu currentTransforms;
     private static final JLabel noTransformsLabel = new JLabel("No Transforms Currently");
@@ -85,14 +85,14 @@ public class TransformsMenu extends JMenu
         this.parent = parent;
         initiate();
     }
-    
+
     private void initiate()
     {
         dataTransformProcess = new DataTransformProcess();
         currentTransforms = new JMenu("Current Transforms");
         currentTransforms.add(noTransformsLabel);
-        
-        
+
+
         add(newMenuItem("Add Bias", (e) ->
         {
             dataTransformProcess.addTransform(new DataTransformFactory()
@@ -130,7 +130,7 @@ public class TransformsMenu extends JMenu
                     return this;
                 }
             });
-            
+
             addTransformName("Add Bias");
         }));
         add(newMenuItem("Linear Rescaling", (e)->
@@ -167,10 +167,10 @@ public class TransformsMenu extends JMenu
             try
             {
                 int empiricalDim = Integer.parseInt(s);
-                
+
                 s = JOptionPane.showInputDialog(parent, "Please specify the RBF width for the transform", "Nystrom RBF", JOptionPane.QUESTION_MESSAGE);
                 double width = Double.parseDouble(s);
-                
+
                 dataTransformProcess.addTransform(new Nystrom.NystromTransformFactory(new RBFKernel(width), empiricalDim, Nystrom.SamplingMethod.KMEANS, 0.0001, false));
                 addTransformName("Nystrong RBF (Dim=" + empiricalDim + ", " + GreekLetters.sigma + "=" + width+")");
             }
@@ -186,10 +186,10 @@ public class TransformsMenu extends JMenu
             try
             {
                 int empiricalDim = Integer.parseInt(s);
-                
+
                 s = JOptionPane.showInputDialog(parent, "Please specify the RBF width for the transform", "Random Kitchen Sinks RBF", JOptionPane.QUESTION_MESSAGE);
                 double width = Double.parseDouble(s);
-                
+
                 dataTransformProcess.addTransform(new Nystrom.NystromTransformFactory(new RBFKernel(width), empiricalDim, Nystrom.SamplingMethod.KMEANS, 0.0001, false));
                 addTransformName("Random Kitchen Sinks RBF (Dim=" + empiricalDim + ", " + GreekLetters.sigma + "=" + width+")");
             }
@@ -226,7 +226,7 @@ public class TransformsMenu extends JMenu
 
     /**
      * Helper method to add the given string name as a item in the list of
-     * currently applied transforms. 
+     * currently applied transforms.
      * @param name the name to display to the user
      */
     private void addTransformName(String name)
@@ -238,7 +238,7 @@ public class TransformsMenu extends JMenu
     }
 
     /**
-     * Helper method to make adding new menu items easier. 
+     * Helper method to make adding new menu items easier.
      * @param name the name to display for the item
      * @param action the action to perform
      * @return the JMenuItem with the given name and action
@@ -255,9 +255,9 @@ public class TransformsMenu extends JMenu
     {
         this.dataTransformProcess = dataTransformProcess;
     }
-    
+
     /**
-     * 
+     *
      * @return the current DataTransformProcess that will apply the transforms selected by the user
      */
     public DataTransformProcess getDataTransformProcess()

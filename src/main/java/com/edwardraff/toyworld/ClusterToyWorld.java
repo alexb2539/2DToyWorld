@@ -77,7 +77,7 @@ public class ClusterToyWorld extends javax.swing.JFrame
     private static BlockingQueue<Runnable> backgroundJobQueue;
     private static Thread backgroundThread;
     private static final ExecutorService execService = Executors.newFixedThreadPool(SystemInfo.LogicalCores);
-    
+
     private static final Map<String, Clusterer> clusterers = new LinkedHashMap<String, Clusterer>()
     {{
         put("ElkanKMeans", new ElkanKMeans());
@@ -95,9 +95,9 @@ public class ClusterToyWorld extends javax.swing.JFrame
         put("DivisiveLocalClusterer", new DivisiveLocalClusterer(new ElkanKMeans(), new DunnIndex(new MeanCentroidDistance(), new AverageLinkDissimilarity())));
         put("DivisiveGlobalClusterer", new DivisiveGlobalClusterer(new ElkanKMeans(), new DunnIndex(new MeanCentroidDistance(), new AverageLinkDissimilarity())));
         put("FLAME", new FLAME(new EuclideanDistance(), 50, 5000));
-        
+
     }};
-    
+
     private void addClusteringToTabbedDisplay(int kSize, int[] assignments, final String fullName)
     {
         int min = 0;
@@ -121,7 +121,7 @@ public class ClusterToyWorld extends javax.swing.JFrame
 
         final CategoryPlot plot = new CategoryPlot(clustering);
         plot.scaleCords(1.1);
-        
+
         SwingUtilities.invokeLater(() ->
         {
             centerTabbed.add(fullName, plot);
@@ -129,7 +129,7 @@ public class ClusterToyWorld extends javax.swing.JFrame
             getContentPane().validate();
             getContentPane().repaint();
         });
-        
+
     }
 
     /**
@@ -166,7 +166,7 @@ public class ClusterToyWorld extends javax.swing.JFrame
         backgroundThread.start();
         jLabel1.setFont(jLabel1.getFont().deriveFont(16));
 
-        
+
         Map<String, JMenu> autoClusterSubMenu = new HashMap<>();
         Map<String, JMenu> kClusterSubMenu = new HashMap<>();
         for(Entry<String, Clusterer> entry : clusterers.entrySet())
@@ -193,7 +193,7 @@ public class ClusterToyWorld extends javax.swing.JFrame
                     targetMenu = jMenuAutoCluster;
                     menuName = clusterName;
                 }
-                
+
                 JMenuItem clusterItem = new JMenuItem(menuName);
                 clusterItem.addActionListener((ActionEvent ae) ->
                 {
@@ -229,10 +229,10 @@ public class ClusterToyWorld extends javax.swing.JFrame
                     }
                 });
 
-                
+
                 targetMenu.add(clusterItem);
             }
-            
+
             if(clusterer instanceof KClusterer)
             {
                 JMenu targetMenu;
@@ -254,7 +254,7 @@ public class ClusterToyWorld extends javax.swing.JFrame
                     targetMenu = jMenuKCluster;
                     menuName = clusterName;
                 }
-                
+
                 JMenuItem clusterItem = new JMenuItem(menuName);
                 clusterItem.addActionListener((ActionEvent ae) ->
                 {
@@ -276,7 +276,7 @@ public class ClusterToyWorld extends javax.swing.JFrame
                     final int kSize = Integer.parseInt(value);
                     if(kSize < 0)
                         return;//TODO show an error dialog
-                    
+
                     int now = waitingFor.incrementAndGet();
                     jLabel1.setText("Waiting on " + now + " jobs...");
                     try
@@ -295,10 +295,10 @@ public class ClusterToyWorld extends javax.swing.JFrame
                 });
 
                 targetMenu.add(clusterItem);
-            
+
             }
         }
-        
+
         setSize(600, 400);
     }
 
@@ -361,13 +361,13 @@ public class ClusterToyWorld extends javax.swing.JFrame
     private void jMenuItemOpenActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_jMenuItemOpenActionPerformed
     {//GEN-HEADEREND:event_jMenuItemOpenActionPerformed
         int returnVal = fileChooser.showOpenDialog(this);
-        if (returnVal == JFileChooser.APPROVE_OPTION) 
+        if (returnVal == JFileChooser.APPROVE_OPTION)
         {
             File file = fileChooser.getSelectedFile();
             String extension = file.toString().substring(file.toString().lastIndexOf(".")+1);
 
             DataSet tmpDataSet = null;
-            
+
             if(extension.equalsIgnoreCase("arff"))
             {
                 tmpDataSet = ARFFLoader.loadArffFile(file);
@@ -389,23 +389,23 @@ public class ClusterToyWorld extends javax.swing.JFrame
                         DataPoint dp = new DataPoint(toDenseVec(parseDouble(split[0]),parseDouble(split[1])), noCatVals, noCats);
                         dpList.add(dp);
                     }
-                    
+
                     tmpDataSet = new SimpleDataSet(dpList);
                 }
                 catch(IOException ex)
                 {
-                    
+
                 }
             }
-            
+
             if(tmpDataSet.getNumNumericalVars() != 2)
                 return;//TODO throw an error
-            
+
             dataSet = tmpDataSet;
             dataSet.applyTransform(new LinearTransform(dataSet, 0, 1));
             Vec xVals = dataSet.getNumericColumn(0);
             Vec yVals = dataSet.getNumericColumn(1);
-            
+
             ScatterPlot scatter = new ScatterPlot(xVals, yVals);
             scatter.scaleCords(1.1);
             if(centerTabbed != null)
@@ -423,7 +423,7 @@ public class ClusterToyWorld extends javax.swing.JFrame
      */
     public static void main(String args[])
     {
-        //For OSX, dosn't impact anyone else - so who cares. 
+        //For OSX, dosn't impact anyone else - so who cares.
         System.setProperty("apple.laf.useScreenMenuBar", "true");
 
         /*

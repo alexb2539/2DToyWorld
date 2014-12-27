@@ -126,10 +126,9 @@ public class ToyWorld extends javax.swing.JFrame
      */
     public static void main(String args[])
     {
-        //For OSX, dosn't impact anyone else - so who cares. 
+        //For OSX, dosn't impact anyone else - so who cares.
         System.setProperty("apple.laf.useScreenMenuBar", "true");
-        
-        
+
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(() ->
         {
